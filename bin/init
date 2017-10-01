@@ -1,0 +1,108 @@
+#!/bin/sh
+
+set -e
+
+prepare_dirs() {
+  LOGDIR=/var/log/wallarm
+  TARANTOOL_LOGFILE=$LOGDIR/tarantool.log
+
+  chown wallarm:wallarm $LOGDIR
+  chmod 0750 $LOGDIR
+
+  touch $TARANTOOL_LOGFILE
+  chown wallarm:wallarm $TARANTOOL_LOGFILE
+
+  mkdir -p /run/supervisor
+}
+
+register_node() {
+  args="--batch --no-sync"
+
+  WALLARM_API_USE_SSL="${WALLARM_API_USE_SSL:-true}"
+  WALLARM_API_CA_VERIFY="${WALLARM_API_CA_VERIFY:-true}"
+
+  if [ -n "${DEPLOY_FORCE}" ]; then
+    args="$args --force"
+  fi
+
+  if [ -n "$WALLARM_API_HOST" ]; then
+    args="$args -H $WALLARM_API_HOST"
+  fi
+
+  if [ -n "$WALLARM_API_PORT" ]; then
+    args="$args -P $WALLARM_API_PORT"
+  fi
+
+  if [ "$WALLARM_API_USE_SSL" = "false" -o \
+       "$WALLARM_API_USE_SSL" = "False" -o \
+       "$WALLARM_API_USE_SSL" = "no" ];
+  then
+    args="$args --no-ssl"
+  fi
+
+  if [ "$WALLARM_API_CA_VERIFY" = "false" -o \
+       "$WALLARM_API_CA_VERIFY" = "False" -o \
+       "$WALLARM_API_CA_VERIFY" = "no" ];
+  then
+    args="$args --no-verify"
+  fi
+
+  if [ -n "$NODE_UUID" -a -n "$NODE_SECRET" ]; then
+    /usr/share/wallarm-common/addnode $args --uuid "$NODE_UUID" --secret "$NODE_SECRET"
+  else
+    /usr/share/wallarm-common/addnode $args --username "$DEPLOY_USER" --password "$DEPLOY_PASSWORD"
+  fi
+}
+
+generate_ssl_cert() {
+  if [ -f /etc/nginx-wallarm/ssl/nginx.key ]; then
+    return 0
+  fi
+
+  mkdir -p /etc/nginx-wallarm/ssl
+
+  openssl req -newkey rsa:2048 -nodes -x509 -subj '/CN=wallarm-fast-proxy' \
+    -keyout /etc/nginx-wallarm/ssl/nginx.key \
+    -out /etc/nginx-wallarm/ssl/nginx.crt
+}
+
+configure_nginx() {
+  set -x
+
+  cat /etc/resolv.conf \
+    |sed -nEe 's/^nameserver (.*)/resolver \1;/p' \
+    >/etc/nginx/conf.d/resolver.conf
+
+  if [ -z "$BACKEND" ] ;then
+    BACKEND='$scheme://$http_host'
+  elif [ "$BACKEND" = "${BACKEND#http://}" -a \
+         "$BACKEND" = "${BACKEND#https://}" ]; then
+    BACKEND="http://$BACKEND"
+  fi
+
+  ALLOWED_HOSTS="${ALLOWED_HOSTS:-.*}"
+
+  sed -i -e "s#proxy_pass .*#proxy_pass $BACKEND;#" \
+    -e "s#server_name .*#server_name ~${ALLOWED_HOSTS};#" \
+    /etc/nginx-wallarm/sites-enabled/default
+
+  echo "${ALLOW_FROM:-all}" \
+    |sed -e 's/[,; ]/\n/g' \
+    |sed -e 's/.*/allow \0;/' \
+    >/etc/nginx-wallarm/allow_from
+  echo "deny all;" >>/etc/nginx-wallarm/allow_from
+}
+
+
+if [ -n "$TARANTOOL_MEMORY_MB" ]; then
+  MEMTX_MEMORY=$(($TARANTOOL_MEMORY_MB * 1048576))
+  export MEMTX_MEMORY
+fi
+
+
+prepare_dirs
+register_node
+generate_ssl_cert
+configure_nginx
+
+exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+while true; do
+  timeout -k 1m 5m /usr/share/wallarm-common/sync-markers -l STDOUT
+  sleep 1
+done

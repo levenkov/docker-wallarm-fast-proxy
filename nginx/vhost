@@ -1,0 +1,33 @@
+server {
+  listen 80 default;
+  listen 443 ssl default;
+
+  ssl_certificate_key ssl/nginx.key;
+  ssl_certificate ssl/nginx.crt;
+
+  wallarm_mode off;
+
+  location / {
+    proxy_pass http://$header_host$request_uri;
+    include proxy_params;
+    include allow_from;
+  }
+}
+
+server {
+  listen 80;
+  listen 443 ssl;
+
+  server_name ~.*;
+
+  ssl_certificate_key ssl/nginx.key;
+  ssl_certificate ssl/nginx.crt;
+
+  wallarm_mode monitoring;
+
+  location / {
+    proxy_pass http://$header_host$request_uri;
+    include proxy_params;
+    include allow_from;
+  }
+}
