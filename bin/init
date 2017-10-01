@@ -91,6 +91,11 @@ configure_nginx() {
     |sed -e 's/.*/allow \0;/' \
     >/etc/nginx-wallarm/allow_from
   echo "deny all;" >>/etc/nginx-wallarm/allow_from
+
+  if [ -n "$PUBLIC_IP" ]; then
+    echo "wallarm_force server_addr $PUBLIC_IP;" \
+      >/etc/nginx-wallarm/conf.d/public_ip.conf
+  fi
 }
 
 
