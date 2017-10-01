@@ -71,7 +71,7 @@ configure_nginx() {
 
   cat /etc/resolv.conf \
     |sed -nEe 's/^nameserver (.*)/resolver \1;/p' \
-    >/etc/nginx/conf.d/resolver.conf
+    >/etc/nginx-wallarm/conf.d/resolver.conf
 
   if [ -z "$BACKEND" ] ;then
     BACKEND='$scheme://$http_host'
