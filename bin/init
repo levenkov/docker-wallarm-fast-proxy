@@ -69,9 +69,8 @@ generate_ssl_cert() {
 configure_nginx() {
   set -x
 
-  cat /etc/resolv.conf \
-    |sed -nEe 's/^nameserver (.*)/resolver \1;/p' \
-    >/etc/nginx-wallarm/conf.d/resolver.conf
+  nameservers=$(cat /etc/resolv.conf |sed -nEe 's/^nameserver (.*)/\1/p' |xargs echo)
+  echo "resolver $nameservers;" >/etc/nginx-wallarm/conf.d/resolver.conf
 
   if [ -z "$BACKEND" ] ;then
     BACKEND='$scheme://$http_host'
