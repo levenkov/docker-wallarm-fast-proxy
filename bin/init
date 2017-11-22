@@ -48,9 +48,9 @@ register_node() {
   fi
 
   if [ -n "$NODE_UUID" -a -n "$NODE_SECRET" ]; then
-    /usr/share/wallarm-common/addnode $args --uuid "$NODE_UUID" --secret "$NODE_SECRET"
+    /usr/share/wallarm-common/addnode $args --uuid "$NODE_UUID" --secret "$NODE_SECRET" --license /tmp/license.key
   else
-    /usr/share/wallarm-common/addnode $args --username "$DEPLOY_USER" --password "$DEPLOY_PASSWORD"
+    /usr/share/wallarm-common/addnode $args --username "$DEPLOY_USER" --password "$DEPLOY_PASSWORD" --license /tmp/license.key
   fi
 }
 
