@@ -1,0 +1,3 @@
+#!/bin/sh
+echo $1 > /etc/wallarm/proxy/marker
+supervisorctl restart proxy
