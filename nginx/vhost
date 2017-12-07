@@ -8,6 +8,7 @@ server {
   wallarm_mode off;
 
   location / {
+    wallarm_force server_port $rewrite_port;
     proxy_pass http://$header_host$request_uri;
     include proxy_params;
     include allow_from;
@@ -26,6 +27,7 @@ server {
   wallarm_mode monitoring;
 
   location / {
+    wallarm_force server_port $rewrite_port;
     proxy_pass http://$header_host$request_uri;
     include proxy_params;
     include allow_from;
