@@ -64,6 +64,9 @@ generate_ssl_cert() {
   openssl req -newkey rsa:2048 -nodes -x509 -subj '/CN=wallarm-fast-proxy' \
     -keyout /etc/nginx-wallarm/ssl/nginx.key \
     -out /etc/nginx-wallarm/ssl/nginx.crt
+
+  mkdir -p /var/www
+  cp /etc/nginx-wallarm/ssl/nginx.crt /var/www/cert.der
 }
 
 configure_nginx() {

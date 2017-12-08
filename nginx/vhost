@@ -7,6 +7,10 @@ server {
 
   wallarm_mode off;
 
+  location /cert.der {
+    root /var/www;
+  }
+
   location / {
     wallarm_force server_port $rewrite_port;
     proxy_pass http://$header_host$request_uri;
@@ -25,6 +29,10 @@ server {
   ssl_certificate ssl/nginx.crt;
 
   wallarm_mode monitoring;
+
+  location /cert.der {
+    root /var/www;
+  }
 
   location / {
     wallarm_force server_port $rewrite_port;

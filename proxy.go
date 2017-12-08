@@ -23,10 +23,10 @@ func init_env() {
 	viper.AutomaticEnv()
 
 	viper.BindEnv("CA_CERT")
-	viper.SetDefault("CA_CERT", "")
+	viper.SetDefault("CA_CERT", "/etc/nginx-wallarm/ssl/nginx.crt")
 
 	viper.BindEnv("CA_KEY")
-	viper.SetDefault("CA_KEY", "")
+	viper.SetDefault("CA_KEY", "/etc/nginx-wallarm/ssl/nginx.key")
 }
 
 func check(e error) {
