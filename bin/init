@@ -64,6 +64,9 @@ generate_ssl_cert() {
   openssl req -newkey rsa:2048 -nodes -x509 -subj '/CN=wallarm-fast-proxy' \
     -keyout /etc/nginx-wallarm/ssl/nginx.key \
     -out /etc/nginx-wallarm/ssl/nginx.crt
+
+  mkdir -p /var/www
+  cp /etc/nginx-wallarm/ssl/nginx.crt /var/www/cert.der
 }
 
 configure_nginx() {
@@ -95,6 +98,8 @@ configure_nginx() {
     echo "wallarm_force server_addr $PUBLIC_IP;" \
       >/etc/nginx-wallarm/conf.d/public_ip.conf
   fi
+
+  set_port
 }
 
 
@@ -102,7 +107,6 @@ if [ -n "$TARANTOOL_MEMORY_MB" ]; then
   MEMTX_MEMORY=$(($TARANTOOL_MEMORY_MB * 1048576))
   export MEMTX_MEMORY
 fi
-
 
 prepare_dirs
 register_node

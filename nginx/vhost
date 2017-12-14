@@ -7,10 +7,21 @@ server {
 
   wallarm_mode off;
 
+  location /cert.der {
+    root /var/www;
+  }
+
   location / {
+    error_page 502 =444 /drop_connection;
+    wallarm_force server_port $rewrite_port;
     proxy_pass http://$header_host$request_uri;
     include proxy_params;
     include allow_from;
+  }
+
+  location = /drop_connection {
+    wallarm_force server_port $rewrite_port;
+    return 444;
   }
 }
 
@@ -25,9 +36,20 @@ server {
 
   wallarm_mode monitoring;
 
+  location /cert.der {
+    root /var/www;
+  }
+
   location / {
+    error_page 502 =444 /drop_connection;
+    wallarm_force server_port $rewrite_port;
     proxy_pass http://$header_host$request_uri;
     include proxy_params;
     include allow_from;
+  }
+
+  location = /drop_connection {
+    wallarm_force server_port $rewrite_port;
+    return 444;
   }
 }

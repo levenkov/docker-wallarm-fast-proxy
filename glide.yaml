@@ -1,0 +1,6 @@
+package: github.com/promix17/docker-wallarm-fast-proxy
+import:
+- package: github.com/elazarl/goproxy
+  version: a96fa3a318260eab29abaf32f7128c9eb07fb073
+- package: github.com/spf13/viper
+  version: ^1.0.0

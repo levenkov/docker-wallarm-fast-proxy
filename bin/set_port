@@ -1,0 +1,22 @@
+#!/bin/sh
+
+echo "map \$scheme \$rewrite_port {" \
+    >/etc/nginx-wallarm/conf.d/public_port.conf
+
+if [ -n "$PUBLIC_HTTP_PORT" ]; then
+  echo "\"http\" $PUBLIC_HTTP_PORT;" \
+    >> /etc/nginx-wallarm/conf.d/public_port.conf
+else
+  echo "\"http\" 80;" \
+    >> /etc/nginx-wallarm/conf.d/public_port.conf
+fi
+
+if [ -n "$PUBLIC_HTTPS_PORT" ]; then
+  echo "\"https\" $PUBLIC_HTTPS_PORT;" \
+    >> /etc/nginx-wallarm/conf.d/public_port.conf
+else
+  echo "\"https\" 443;" \
+    >> /etc/nginx-wallarm/conf.d/public_port.conf
+fi
+
+echo "}"  >> /etc/nginx-wallarm/conf.d/public_port.conf
