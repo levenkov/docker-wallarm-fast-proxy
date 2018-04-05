@@ -1,22 +1,35 @@
 #!/bin/sh
 
+set -e
+
 echo "map \$scheme \$rewrite_port {" \
     >/etc/nginx-wallarm/conf.d/public_port.conf
 
-if [ -n "$PUBLIC_HTTP_PORT" ]; then
+is_port_valid() {
+  local port="${1}"
+  ( echo $port | egrep -q '^[0-9]+$' ) && [ $port -gt 0 ] && [ $port -lt 65536 ]
+}
+
+if [ -z "$PUBLIC_HTTP_PORT" ]; then
+  echo "\"http\" 80;" \
+    >> /etc/nginx-wallarm/conf.d/public_port.conf
+elif is_port_valid "$PUBLIC_HTTP_PORT"; then
   echo "\"http\" $PUBLIC_HTTP_PORT;" \
     >> /etc/nginx-wallarm/conf.d/public_port.conf
 else
-  echo "\"http\" 80;" \
-    >> /etc/nginx-wallarm/conf.d/public_port.conf
+  echo "PUBLIC_HTTP_PORT is not valid port: $PUBLIC_HTTP_PORT" >&2
+  exit 1
 fi
 
-if [ -n "$PUBLIC_HTTPS_PORT" ]; then
+if [ -z "$PUBLIC_HTTPS_PORT" ]; then
+  echo "\"https\" 443;" \
+    >> /etc/nginx-wallarm/conf.d/public_port.conf
+elif is_port_valid "$PUBLIC_HTTPS_PORT"; then
   echo "\"https\" $PUBLIC_HTTPS_PORT;" \
     >> /etc/nginx-wallarm/conf.d/public_port.conf
 else
-  echo "\"https\" 443;" \
-    >> /etc/nginx-wallarm/conf.d/public_port.conf
+  echo "PUBLIC_HTTPS_PORT is not valid port: $PUBLIC_HTTPS_PORT" >&2
+  exit 1
 fi
 
 echo "}"  >> /etc/nginx-wallarm/conf.d/public_port.conf

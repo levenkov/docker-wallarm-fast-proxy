@@ -2,6 +2,10 @@
 
 set -e
 
+is_ip_valid() {
+  ruby -ripaddr -e 'IPAddr.new(ARGV.first) rescue exit 1' -- "$1"
+}
+
 prepare_dirs() {
   LOGDIR=/var/log/wallarm
   TARANTOOL_LOGFILE=$LOGDIR/tarantool.log
@@ -94,7 +98,13 @@ configure_nginx() {
     >/etc/nginx-wallarm/allow_from
   echo "deny all;" >>/etc/nginx-wallarm/allow_from
 
-  if [ -n "$PUBLIC_IP" ]; then
+  if [ -z "$PUBLIC_IP" ]; then
+    echo "PUBLIC_IP should be set" >&2
+    exit 1
+  elif ! is_ip_valid "$PUBLIC_IP"; then
+    echo "PUBLIC_IP is not valid IP address: $PUBLIC_IP" >&2
+    exit 1
+  else
     echo "wallarm_force server_addr $PUBLIC_IP;" \
       >/etc/nginx-wallarm/conf.d/public_ip.conf
   fi
